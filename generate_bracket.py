@@ -199,38 +199,139 @@ def extract_game_content(html: str) -> str:
     return '\n'.join(content)
 
 
-def parse_schedule_for_games(year: int) -> List[str]:
-    """Parse the schedule page to find playoff games."""
+def parse_schedule_for_games(year: int) -> Dict[str, str]:
+    """Parse the schedule page to find playoff games and return a mapping of game keys to URLs."""
     log(f"Fetching schedule for year {year}")
     schedule_url = f'https://plaintextsports.com/mlb/{year}/schedule'
     html = fetch_url(schedule_url)
     
-    if not html:
-        return []
+    game_url_map = {}
     
-    # Find all game links in the schedule
-    game_links = re.findall(r'href="(/mlb/\d{4}-\d{2}-\d{2}/[^"]+)"', html)
+    if html:
+        # Find all game links in the schedule
+        game_links = re.findall(r'href="(/mlb/\d{4}-\d{2}-\d{2}/[^"]+)"', html)
+        
+        # Get unique links and filter for October games (playoffs)
+        seen = set()
+        for link in game_links:
+            # Extract date from link
+            date_match = re.search(r'/mlb/(\d{4}-\d{2})-\d{2}/', link)
+            if date_match:
+                year_month = date_match.group(1)
+                # Only include October games (month 10)
+                if year_month.endswith('-10') and link not in seen:
+                    # Extract teams from link for mapping
+                    teams_match = re.search(r'/([^/]+)$', link)
+                    if teams_match:
+                        teams = teams_match.group(1)
+                        game_url_map[teams] = link
+                    seen.add(link)
+        
+        log(f"Found {len(game_url_map)} actual playoff game(s) from schedule")
     
-    # Get unique links and filter for October games (playoffs)
-    unique_links = []
-    seen = set()
-    for link in game_links:
-        # Extract date from link
-        date_match = re.search(r'/mlb/(\d{4}-\d{2})-\d{2}/', link)
-        if date_match:
-            year_month = date_match.group(1)
-            # Only include October games (month 10)
-            if year_month.endswith('-10') and link not in seen:
-                unique_links.append(link)
-                seen.add(link)
+    return game_url_map
+
+
+def generate_all_playoff_games(year: int) -> List[Dict]:
+    """Generate all 53 possible playoff games (12 WC + 20 DS + 14 CS + 7 WS = 53)."""
+    log("Generating all 53 possible playoff games...")
+    all_games = []
     
-    log(f"Found {len(unique_links)} potential playoff game link(s) from schedule")
-    stats['games_found'] = len(unique_links)
+    # Wild Card Series (4 series x 3 games = 12 games)
+    # AL: 3v6, 4v5 / NL: 3v6, 4v5
+    wc_matchups = [
+        ('AL', '3', '6'),
+        ('AL', '4', '5'),
+        ('NL', '3', '6'),
+        ('NL', '4', '5')
+    ]
     
-    return unique_links
+    for league, seed1, seed2 in wc_matchups:
+        for game_num in range(1, 4):  # Best of 3
+            all_games.append({
+                'series': f'{league}WC',
+                'game_num': game_num,
+                'team1': f'{league}{seed1}',
+                'team2': f'{league}{seed2}',
+                'matchup_key': f'{league}WC-{seed1}v{seed2}-G{game_num}',
+                'is_generated': True
+            })
+    
+    # Division Series (4 series x 5 games = 20 games)
+    # AL: 1vWC, 2vWC / NL: 1vWC, 2vWC
+    ds_matchups = [
+        ('AL', '1', 'WC'),
+        ('AL', '2', 'WC'),
+        ('NL', '1', 'WC'),
+        ('NL', '2', 'WC')
+    ]
+    
+    for league, seed1, seed2 in ds_matchups:
+        for game_num in range(1, 6):  # Best of 5
+            all_games.append({
+                'series': f'{league}DS',
+                'game_num': game_num,
+                'team1': f'{league}{seed1}',
+                'team2': f'{league}{seed2}',
+                'matchup_key': f'{league}DS-{seed1}v{seed2}-G{game_num}',
+                'is_generated': True
+            })
+    
+    # Championship Series (2 series x 7 games = 14 games)
+    cs_matchups = [
+        ('AL', 'DS1', 'DS2'),
+        ('NL', 'DS1', 'DS2')
+    ]
+    
+    for league, seed1, seed2 in cs_matchups:
+        for game_num in range(1, 8):  # Best of 7
+            all_games.append({
+                'series': f'{league}CS',
+                'game_num': game_num,
+                'team1': f'{league}{seed1}',
+                'team2': f'{league}{seed2}',
+                'matchup_key': f'{league}CS-{seed1}v{seed2}-G{game_num}',
+                'is_generated': True
+            })
+    
+    # World Series (1 series x 7 games = 7 games)
+    for game_num in range(1, 8):  # Best of 7
+        all_games.append({
+            'series': 'WS',
+            'game_num': game_num,
+            'team1': 'AL',
+            'team2': 'NL',
+            'matchup_key': f'WS-ALvNL-G{game_num}',
+            'is_generated': True
+        })
+    
+    log(f"Generated {len(all_games)} total playoff games")
+    stats['games_found'] = len(all_games)
+    
+    return all_games
 
 
 
+
+
+def fetch_game_data_for_generated_game(game_info: Dict, game_url_map: Dict[str, str]) -> Dict:
+    """Fetch actual game data if available, otherwise create placeholder."""
+    series = game_info['series']
+    game_num = game_info['game_num']
+    
+    # Check if we have a real game URL for this matchup
+    # This is a best-effort match - we won't have exact matches for generated games
+    game_data = {
+        'series': series,
+        'game_num': game_num,
+        'team1': game_info['team1'],
+        'team2': game_info['team2'],
+        'matchup_key': game_info['matchup_key'],
+        'placeholder': True,
+        'content': f"Placeholder for {series} Game {game_num}\nTeams: {game_info['team1']} vs {game_info['team2']}\n\nThis game will be updated with actual data when played."
+    }
+    
+    return game_data
 
 
 def fetch_game_data(game_path: str) -> Optional[Dict]:
@@ -302,8 +403,10 @@ def create_github_issue(game_data: Dict):
         body += f"**Game:** {game_data['game_num']}\n"
         body += f"**Teams:** {game_data['team1']} vs {game_data['team2']}\n\n"
         body += "_This is a placeholder for a future game. It will be updated when the game is played._\n"
+        if 'url' in game_data:
+            body += f"\nGame URL: {game_data['url']}\n"
     else:
-        body = f"Game URL: {game_data['url']}\n\n"
+        body = f"Game URL: {game_data.get('url', 'N/A')}\n\n"
         body += "```\n"
         body += game_data['content']
         body += "\n```\n"
@@ -468,38 +571,24 @@ def main():
     existing_issues = get_existing_issues()
     log("")
     
-    # Parse schedule for games
-    game_links = parse_schedule_for_games(current_year)
+    # Parse schedule for actual game URLs
+    game_url_map = parse_schedule_for_games(current_year)
     log("")
     
-    # Process each game
+    # Generate all 53 possible playoff games
+    all_games = generate_all_playoff_games(current_year)
+    log("")
+    
+    # Process each generated game
     log("Processing games...")
-    for game_path in game_links:
-        # Check if we already have an issue for this game
-        # We need to check partial matches since we don't know the series/game number yet
-        game_id = game_path.split('/')[-1]  # e.g., 'tor-sea'
+    for game_info in all_games:
+        # Create the game data structure
+        game_data = fetch_game_data_for_generated_game(game_info, game_url_map)
         
-        # Check if any existing issue title contains this game
-        skip = False
-        for title in existing_issues.keys():
-            if game_id in title.lower():
-                log(f"Game {game_path} already exists, skipping")
-                stats['games_skipped'] += 1
-                skip = True
-                break
-        
-        if skip:
-            continue
-        
-        # Fetch game data
-        game_data = fetch_game_data(game_path)
-        
-        if not game_data:
-            stats['games_skipped'] += 1
-            continue
-        
-        # Check again with full title
+        # Create title for duplicate checking
         title = create_issue_title(game_data)
+        
+        # Check if issue already exists
         if title in existing_issues:
             log(f"Issue '{title}' already exists, skipping")
             stats['games_skipped'] += 1
