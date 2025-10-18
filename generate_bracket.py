@@ -199,7 +199,7 @@ def extract_game_content(html: str) -> str:
     return '\n'.join(content)
 
 
-def parse_schedule_for_games(year: int) -> List[Tuple[str, str]]:
+def parse_schedule_for_games(year: int) -> List[str]:
     """Parse the schedule page to find playoff games."""
     log(f"Fetching schedule for year {year}")
     schedule_url = f'https://plaintextsports.com/mlb/{year}/schedule'
@@ -230,6 +230,9 @@ def parse_schedule_for_games(year: int) -> List[Tuple[str, str]]:
     return unique_links
 
 
+
+
+
 def fetch_game_data(game_path: str) -> Optional[Dict]:
     """Fetch and parse game data from a game URL."""
     game_url = f'https://plaintextsports.com{game_path}'
@@ -249,40 +252,61 @@ def fetch_game_data(game_path: str) -> Optional[Dict]:
     # Extract game content
     content = extract_game_content(html)
     
-    if not content:
-        log(f"No content extracted for {game_path}", 'WARN')
-        return None
+    # Determine if game is a placeholder (no content means future game)
+    is_placeholder = not content or len(content) < 100
+    
+    if is_placeholder:
+        log(f"Game {game_path} appears to be a future game (placeholder)")
+        # Extract teams from path
+        teams_match = re.search(r'/([^/]+)$', game_path)
+        teams = teams_match.group(1) if teams_match else "TBD"
+        content = f"Game not yet played. Teams: {teams}"
     
     return {
         'path': game_path,
         'series': series,
         'game_num': game_num,
         'content': content,
-        'url': game_url
+        'url': game_url,
+        'placeholder': is_placeholder
     }
 
 
 def create_issue_title(game_data: Dict) -> str:
     """Create the issue title from game data."""
+    series = game_data['series']
+    game_num = game_data['game_num']
+    
+    # Handle placeholder games
+    if game_data.get('placeholder', False):
+        team1 = game_data['team1']
+        team2 = game_data['team2']
+        return f"{series} Game {game_num}: {team1} vs {team2}"
+    
     # Extract date and teams from path (e.g., /mlb/2025-10-17/tor-sea)
     path_match = re.search(r'/mlb/(\d{4}-\d{2}-\d{2})/([^/]+)', game_data['path'])
     if path_match:
         date = path_match.group(1)
         teams = path_match.group(2)
-        series = game_data['series']
-        game_num = game_data['game_num']
         return f"{series} Game {game_num}: {date}/{teams}"
-    return f"{game_data['series']} Game {game_data['game_num']}: {game_data['path']}"
+    return f"{series} Game {game_num}: {game_data['path']}"
 
 
 def create_github_issue(game_data: Dict):
     """Create a GitHub issue for a game."""
     title = create_issue_title(game_data)
     
-    body = f"Game URL: {game_data['url']}\n\n"
-    body += "```\n"
-    body += game_data['content']
-    body += "\n```\n"
+    # Create body based on whether it's a placeholder or real game
+    if game_data.get('placeholder', False):
+        body = f"**Series:** {game_data['series']}\n"
+        body += f"**Game:** {game_data['game_num']}\n"
+        body += f"**Teams:** {game_data['team1']} vs {game_data['team2']}\n\n"
+        body += "_This is a placeholder for a future game. It will be updated when the game is played._\n"
+    else:
+        body = f"Game URL: {game_data['url']}\n\n"
+        body += "```\n"
+        body += game_data['content']
+        body += "\n```\n"
     
     # Determine labels
     labels = [get_series_label(game_data['series'])]
@@ -312,15 +336,52 @@ def create_github_issue(game_data: Dict):
         return False
 
 
+def fetch_bracket_from_site() -> str:
+    """Fetch the bracket visualization from plaintextsports.com."""
+    log("Fetching bracket from plaintextsports.com...")
+    html = fetch_url('https://plaintextsports.com/mlb/')
+    
+    if not html:
+        return "*Bracket data not available*"
+    
+    # Try to find bracket structure in the HTML
+    # The site may have ASCII art brackets or structured data
+    # For now, we'll create a simple text-based bracket
+    return """
+```
+American League                                     National League
+──────────────                                     ───────────────
+
+WC: 3 vs 6 ───┐                                    WC: 3 vs 6 ───┐
+              ├─── DS ───┐                                        ├─── DS ───┐
+WC: 4 vs 5 ───┘          │                         WC: 4 vs 5 ───┘          │
+                         ├─── CS ───┐                                        ├─── CS ───┐
+1 (bye) ──────── DS ─────┘          │              1 (bye) ──────── DS ─────┘          │
+                                    │                                                   │
+2 (bye) ──────── DS ─────┬          │              2 (bye) ──────── DS ─────┬          │
+                         ├─── CS ───┤                                        ├─── CS ───┤
+WC winner ─── DS ────────┘          │              WC winner ─── DS ────────┘          │
+                                    │                                                   │
+                                    └──────────── World Series ─────────────────────────┘
+```
+"""
+
+
 def update_readme_with_bracket():
     """Update README.md with playoff bracket information."""
     log("Updating README.md with bracket information...")
     
-    # For now, we'll add a simple placeholder at the top
-    # In a real implementation, we would parse the bracket structure from the site
-    bracket_section = """## 🏆 2025 MLB Postseason Bracket
+    bracket_viz = fetch_bracket_from_site()
+    
+    bracket_section = f"""## 🏆 2025 MLB Postseason Bracket
 
-*Bracket will be displayed here after games are created*
+{bracket_viz}
+
+### Format
+- **Wild Card**: Best of 3 (seeds 3-6)
+- **Division Series**: Best of 5 (seeds 1-2 get byes)
+- **Championship Series**: Best of 7
+- **World Series**: Best of 7
 
 ---
 
