@@ -44,7 +44,7 @@ Track World Series baseball bracket games using GitHub issues following the 2025
 
 ## 📝 Game Issue Format
 
-**Title**: `NLCS GAME 5: SEA 6 @TOR 2 (2-2)`
+**Title**: `NLCS GAME 5: 2025-10-17/tor-sea`
 
 **Body**: Contains score header (HRE format) with:
 - Short narrative of main highlights (max 10 lines)
