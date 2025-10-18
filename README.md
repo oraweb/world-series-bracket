@@ -19,7 +19,7 @@ Track World Series baseball bracket games using GitHub issues following the 2025
 
 ## 📊 League Table
 
-**Last Updated**: 2025-10-18 04:54:17 UTC
+**Last Updated**: 2025-10-18 07:21:01 UTC
 
 | Rank | Player | Total Points | 🌟 WC | 🎯 DS | 🏅 CS | 🏆 WS | Games |
 |------|--------|--------------|-------|-------|-------|-------|-------|
@@ -44,7 +44,7 @@ Track World Series baseball bracket games using GitHub issues following the 2025
 
 ## 📝 Game Issue Format
 
-**Title**: `NLCS GAME 5: 2025-10-17/tor-sea`
+**Title**: `NLCS GAME 5: SEA 6 @TOR 2 (2-2)`
 
 **Body**: Contains score header (HRE format) with:
 - Short narrative of main highlights (max 10 lines)
