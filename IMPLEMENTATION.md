@@ -137,7 +137,7 @@ The scoring system will automatically calculate points when:
 
 Run the "Manage Player Labels" workflow with custom player names:
 ```
-Actions → Manage Player Labels → Run workflow → Enter: "alice bob charlie"
+Actions → Manage Player Labels → Run workflow → Enter: "sarah mike daniel"
 ```
 
 ### Manual Script Execution
@@ -155,7 +155,7 @@ python3 setup_labels.py
 python3 manage_players.py
 
 # Manage players (custom)
-python3 manage_players.py alice bob charlie
+python3 manage_players.py sarah mike daniel
 
 # Score playoffs
 python3 score_playoffs.py
