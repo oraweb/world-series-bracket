@@ -1,0 +1,37 @@
+name: Generate Bracket
+
+on:
+  workflow_dispatch:
+    inputs:
+      year:
+        description: 'Year to generate bracket for (default: current year)'
+        required: false
+        default: ''
+
+permissions:
+  issues: write
+  contents: write
+
+jobs:
+  generate-bracket:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Generate bracket
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python generate_bracket.py
