@@ -1,0 +1,37 @@
+name: Manage Player Labels
+
+on:
+  workflow_dispatch:
+    inputs:
+      players:
+        description: 'Space-separated list of player names (e.g., "jack marjorie caroline")'
+        required: false
+        default: 'jack marjorie caroline'
+
+jobs:
+  manage-players:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+      
+      - name: Run player label manager
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -z "${{ github.event.inputs.players }}" ]; then
+            python manage_players.py
+          else
+            python manage_players.py ${{ github.event.inputs.players }}
+          fi
