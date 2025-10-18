@@ -19,7 +19,7 @@ Track World Series baseball bracket games using GitHub issues following the 2025
 
 ## 📊 League Table
 
-**Last Updated**: Not yet calculated
+**Last Updated**: 2025-10-18 04:54:17 UTC
 
 | Rank | Player | Total Points | 🌟 WC | 🎯 DS | 🏅 CS | 🏆 WS | Games |
 |------|--------|--------------|-------|-------|-------|-------|-------|
@@ -56,34 +56,8 @@ Track World Series baseball bracket games using GitHub issues following the 2025
 
 ## 🤖 Automation
 
-### Setup Labels (One-time)
-Run the "Setup Labels" workflow to create series and league labels:
-```
-Actions → Setup Labels → Run workflow
-```
-
-### Manage Player Labels
-Run the "Manage Player Labels" workflow to delete and recreate player labels:
-```
-Actions → Manage Player Labels → Run workflow
-```
-You can specify custom player names or use the defaults (jack, marjorie, caroline).
-
-### Score Playoffs
-The "Score Playoffs" workflow runs automatically when:
-- An issue is closed (game completed)
-- An issue is labeled (player assignment)
-
-You can also trigger it manually to recalculate scores.
-
-## 🎮 How to Play
-
-1. **Setup**: Run the setup workflows to create labels
-2. **Create Games**: Create issues for each game with proper title format
-3. **Add Labels**: Label each game with series round and league
-4. **Close Won Games**: Close the issue when a game is won
-5. **Claim Points**: Add your player label to issues your team won
-6. **Watch Scores**: The league table updates automatically!
+- **Player Management**: Workflow dispatch to delete and recreate player labels
+- **Scoring**: Automatically calculates and updates league table
 
 ---
 
