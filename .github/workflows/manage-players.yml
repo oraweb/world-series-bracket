@@ -8,6 +8,10 @@ on:
         required: false
         default: 'jack marjorie caroline'
 
+permissions:
+  issues: write
+  contents: read
+
 jobs:
   manage-players:
     runs-on: ubuntu-latest
