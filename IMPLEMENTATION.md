@@ -19,7 +19,21 @@ This repository implements a World Series bracket tracking system using GitHub I
    - Default players: jack, marjorie, caroline
    - Accepts custom player names as command-line arguments
 
-3. **score_playoffs.py** - Calculates and updates playoff scores
+3. **generate_bracket.py** - Generates postseason bracket and creates game issues
+   - Crawls plaintextsports.com for MLB postseason games
+   - Creates GitHub issues for each game found
+   - Automatically labels issues with series round and league
+   - Checks for existing issues to avoid duplicates
+   - Handles both completed and future games
+   - Updates README.md with bracket visualization
+   - Logs all API calls and provides statistics
+   - Features:
+     - Parses game data including scores, teams, and game details
+     - Extracts hyperlinks from game pages
+     - Creates placeholder issues for unplayed games
+     - Supports all playoff rounds: Wild Card, Division Series, Championship Series, World Series
+
+4. **score_playoffs.py** - Calculates and updates playoff scores
    - Fetches all issues (games) from the repository
    - Calculates points based on series round and player assignments
    - Updates README.md with league table
@@ -42,7 +56,19 @@ This repository implements a World Series bracket tracking system using GitHub I
    - Input: Space-separated list of player names (optional)
    - Runs: `manage_players.py`
 
-3. **.github/workflows/score-playoffs.yml**
+3. **.github/workflows/generate-bracket.yml**
+   - Trigger: Manual workflow_dispatch
+   - Purpose: Generate postseason bracket and create game issues
+   - Input: Year (optional, defaults to current year)
+   - Runs: `generate_bracket.py`
+   - Permissions: Issues write, contents write
+   - Features:
+     - Fetches playoff games from plaintextsports.com
+     - Creates issues for all playoff games
+     - Avoids duplicates by checking existing issues
+     - Updates README.md with bracket visualization
+
+4. **.github/workflows/score-playoffs.yml**
    - Trigger: Automatic on issue close or label, or manual
    - Purpose: Calculate and update playoff scores
    - Runs: `score_playoffs.py`
@@ -62,6 +88,17 @@ This repository implements a World Series bracket tracking system using GitHub I
    - Select "Manage Player Labels"
    - Click "Run workflow"
    - (Optional) Enter custom player names or use defaults
+
+3. Run the "Generate Bracket" workflow to create game issues:
+   - Go to Actions tab
+   - Select "Generate Bracket"
+   - Click "Run workflow"
+   - (Optional) Enter year or use current year
+   - This will:
+     - Fetch all playoff games from plaintextsports.com
+     - Create issues for each game
+     - Update README.md with bracket visualization
+     - Skip games that already have issues
 
 ### Creating a Game
 
