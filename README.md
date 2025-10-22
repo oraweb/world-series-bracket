@@ -1,34 +1,5 @@
 # ⚾ World Series Bracket Tracker 🏆
 
-## 🏆 2025 MLB Postseason Bracket
-
-
-```
-American League                                     National League
-──────────────                                     ───────────────
-
-WC: 3 vs 6 ───┐                                    WC: 3 vs 6 ───┐
-              ├─── DS ───┐                                        ├─── DS ───┐
-WC: 4 vs 5 ───┘          │                         WC: 4 vs 5 ───┘          │
-                         ├─── CS ───┐                                        ├─── CS ───┐
-1 (bye) ──────── DS ─────┘          │              1 (bye) ──────── DS ─────┘          │
-                                    │                                                   │
-2 (bye) ──────── DS ─────┬          │              2 (bye) ──────── DS ─────┬          │
-                         ├─── CS ───┤                                        ├─── CS ───┤
-WC winner ─── DS ────────┘          │              WC winner ─── DS ────────┘          │
-                                    │                                                   │
-                                    └──────────── World Series ─────────────────────────┘
-```
-
-
-### Format
-- **Wild Card**: Best of 3 (seeds 3-6)
-- **Division Series**: Best of 5 (seeds 1-2 get byes)
-- **Championship Series**: Best of 7
-- **World Series**: Best of 7
-
----
-
 Track World Series baseball bracket games using GitHub issues following the 2025 Wild Card format.
 
 ## 🍿 How It Works
@@ -48,7 +19,7 @@ Track World Series baseball bracket games using GitHub issues following the 2025
 
 ## 📊 League Table
 
-**Last Updated**: 2025-10-18 07:21:01 UTC
+**Last Updated**: 2025-10-22 02:29:52 UTC
 
 | Rank | Player | Total Points | 🌟 WC | 🎯 DS | 🏅 CS | 🏆 WS | Games |
 |------|--------|--------------|-------|-------|-------|-------|-------|
